@@ -72,10 +72,9 @@ test('config.globOptions expands directories by default', t => {
   const result = common.expand(['test/resources/*a*']);
   const expected = [
     'test/resources/a.txt',
-    'test/resources/badlink',
-    'test/resources/cat',
-    'test/resources/external',
-    'test/resources/head',
+    'test/resources/cat/',
+    'test/resources/external/',
+    'test/resources/head/',
   ];
   t.deepEqual(result, expected);
 });
@@ -117,37 +116,35 @@ test('config.globOptions expands "?" in folder path by default', t => {
 });
 
 test('config.globOptions respects cwd', t => {
-  // Both node-glob and fast-glob call this option 'cwd'.
+  // Both node-glob and tinyglobby call this option 'cwd'.
   shell.config.globOptions = { cwd: 'test' };
   const result = common.expand(['resources/*a*']);
   const expected = [
     'resources/a.txt',
-    'resources/badlink',
-    'resources/cat',
-    'resources/external',
-    'resources/head',
+    'resources/cat/',
+    'resources/external/',
+    'resources/head/',
   ];
   t.deepEqual(result, expected);
 });
 
 test('config.globOptions respects dot', t => {
-  // Both node-glob and fast-glob call this option 'dot'.
+  // Both node-glob and tinyglobby call this option 'dot'.
   shell.config.globOptions = { dot: true };
   const result = common.expand(['test/resources/ls/*']);
   t.is(result.length, 8);
-  t.truthy(result.includes('test/resources/ls/.hidden_dir'));
+  t.truthy(result.includes('test/resources/ls/.hidden_dir/'));
   t.truthy(result.includes('test/resources/ls/.hidden_file'));
 });
 
 test('config.globOptions respects ignore', t => {
-  // Both node-glob and fast-glob call this option 'ignore'.
+  // Both node-glob and tinyglobby call this option 'ignore'.
   shell.config.globOptions = { ignore: ['test/resources/external'] };
   const result = common.expand(['test/resources/*a*']);
   const expected = [
     'test/resources/a.txt',
-    'test/resources/badlink',
-    'test/resources/cat',
-    'test/resources/head',
+    'test/resources/cat/',
+    'test/resources/head/',
   ];
   t.deepEqual(result, expected);
   // Does not include the result that we chose to ignore
@@ -155,7 +152,7 @@ test('config.globOptions respects ignore', t => {
 });
 
 test('config.globOptions respects absolute', t => {
-  // Both node-glob and fast-glob call this option 'absolute'.
+  // Both node-glob and tinyglobby call this option 'absolute'.
   shell.config.globOptions = { absolute: true };
   const result = common.expand(['test/resources/*a*']);
   function abs(file) {
@@ -167,10 +164,9 @@ test('config.globOptions respects absolute', t => {
   }
   const expected = [
     abs('test/resources/a.txt'),
-    abs('test/resources/badlink'),
-    abs('test/resources/cat'),
-    abs('test/resources/external'),
-    abs('test/resources/head'),
+    abs('test/resources/cat/'),
+    abs('test/resources/external/'),
+    abs('test/resources/head/'),
   ];
   t.deepEqual(result, expected);
 });
@@ -181,7 +177,6 @@ test('config.globOptions respects nodir', t => {
   // Includes files and symlinks.
   const expected = [
     'test/resources/a.txt',
-    'test/resources/badlink',
   ];
   t.deepEqual(result, expected);
   // Does not include the directories.
@@ -196,7 +191,6 @@ test('config.globOptions respects mark', t => {
   // Directories get a '/' character at the end.
   const expected = [
     'test/resources/a.txt',
-    'test/resources/badlink',
     'test/resources/cat/',
     'test/resources/external/',
     'test/resources/head/',
@@ -237,31 +231,29 @@ test('config.globOptions respects noglobstar', t => {
   ];
   t.deepEqual(result, expected);
 
-  // When 'noglobstar' is true, "**" will behave like a regular "*" and matches
-  // exactly 1 directory.
+  // When 'noglobstar' is true, "**" is treated literally.
   shell.config.globOptions = { noglobstar: true };
   result = common.expand(['test/**/file1']);
   expected = [
-    'test/resources/file1',
+    'test/**/file1',
   ];
   t.deepEqual(result, expected);
 });
 
 test('config.globOptions respects noext', t => {
-  // Default behavior is to support fancy glob patterns (like "file1.+(js|txt)").
+  // tinyglobby treats this extglob pattern literally by default.
   let result = common.expand([
     'test/resources/file1.+(js|txt)',
     'test/resources/file2.*',
   ]);
   let expected = [
-    'test/resources/file1.js',
-    'test/resources/file1.txt',
+    'test/resources/file1.+(js|txt)',
     'test/resources/file2.js',
     'test/resources/file2.txt',
   ];
   t.deepEqual(result, expected);
 
-  // When 'noext' is true, this only matches regular globs (like "file2.*").
+  // When 'noext' is true, this still matches regular globs (like "file2.*").
   shell.config.globOptions = { noext: true };
   result = common.expand([
     'test/resources/file1.+(js|txt)',

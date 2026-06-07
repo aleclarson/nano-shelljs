@@ -1,6 +1,6 @@
 var path = require('path');
 var fs = require('fs');
-var glob = require('fast-glob');
+var glob = require('tinyglobby');
 var common = require('./common');
 
 // glob patterns use the UNIX path seperator
@@ -106,8 +106,8 @@ function _ls(options, paths) {
     if (stat.isDirectory() && !options.directory) {
       if (options.recursive) {
         // use glob, because it's simple
-        glob.sync(p + globPatternRecursive, {
-          // These options are just to make fast-glob be compatible with POSIX
+        glob.globSync(p + globPatternRecursive, {
+          // These options are just to make tinyglobby be compatible with POSIX
           // (bash) wildcard behavior.
           onlyFiles: false,
 

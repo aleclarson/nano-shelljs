@@ -6,7 +6,7 @@
 
 var os = require('os');
 var fs = require('fs');
-var glob = require('fast-glob');
+var glob = require('tinyglobby');
 
 var shell = {};
 exports.shell = shell;
@@ -255,7 +255,7 @@ function parseOptions(opt, map, errorOptions) {
 exports.parseOptions = parseOptions;
 
 function globOptions() {
-  // These options are just to make fast-glob be compatible with POSIX (bash)
+  // These options are just to make tinyglobby be compatible with POSIX (bash)
   // wildcard behavior.
   var defaultGlobOptions = {
     onlyFiles: false,
@@ -264,10 +264,9 @@ function globOptions() {
 
   var newGlobOptions = Object.assign({}, config.globOptions);
   var optionRenames = {
-    // node-glob's 'nodir' is not quote the same as fast-glob's 'onlyFiles'.
+    // node-glob's 'nodir' is not quite the same as tinyglobby's 'onlyFiles'.
     // Compatibility for this is implemented at the call site.
     mark: 'markDirectories',
-    matchBase: 'baseNameMatch',
   };
   Object.keys(optionRenames).forEach(function (oldKey) {
     var newKey = optionRenames[oldKey];
@@ -292,7 +291,7 @@ function globOptions() {
 
 
 // Workaround for https://github.com/shelljs/shelljs/issues/1197
-// fast-glob's dependency glob-parent does not recognize the '?' wildcard in
+// tinyglobby's dependency glob-parent does not recognize the '?' wildcard in
 // non-final path segments, causing those patterns to be treated as literal
 // directory names. Replace standalone '?' with the equivalent character class
 // '[^/]' which glob-parent handles correctly.
@@ -343,7 +342,8 @@ function expand(list) {
       var ret;
       var globOpts = globOptions();
       try {
-        ret = glob.sync(convertQuestionMarkForGlob(listEl), globOpts);
+        var globPattern = config.globOptions.matchBase && listEl.indexOf('/') === -1 ? '**/' + listEl : listEl;
+        ret = glob.globSync(convertQuestionMarkForGlob(globPattern), globOpts);
       } catch (e) {
         // if glob fails, interpret the string literally
         ret = [listEl];

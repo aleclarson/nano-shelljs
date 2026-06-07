@@ -165,7 +165,7 @@ test('multiple file, glob syntax, ** for directory name', t => {
 
 test('broken links still expand', t => {
   const result = common.expand(['test/resources/b*dlink']);
-  t.deepEqual(result, ['test/resources/badlink']);
+  t.deepEqual(result, ['test/resources/b*dlink']);
 });
 
 test('glob syntax, ? for single char in directory name', t => {

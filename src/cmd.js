@@ -1,4 +1,5 @@
-var execa = require('execa');
+var childProcess = require('child_process');
+var path = require('path');
 var common = require('./common');
 
 var DEFAULT_MAXBUFFER_SIZE = 20 * 1024 * 1024;
@@ -11,21 +12,20 @@ common.register('cmd', _cmd, {
   wrapOutput: true,
 });
 
-function isCommandNotFound(execaResult) {
+function isCommandNotFound(spawnResult) {
   if (process.platform === 'win32') {
     var str = 'is not recognized as an internal or external command';
-    return execaResult.exitCode && execaResult.stderr.includes(str);
+    return spawnResult.status && spawnResult.stderr.includes(str);
   }
-  return execaResult.failed && execaResult.code === 'ENOENT';
+  return spawnResult.error && spawnResult.error.code === 'ENOENT';
 }
 
-function isExecaInternalError(result) {
+function isSpawnInternalError(result) {
   if (typeof result.stdout !== 'string') return true;
   if (typeof result.stderr !== 'string') return true;
-  if (typeof result.exitCode !== 'number') return true;
-  if (result.exitCode === 0 && result.failed) return true;
+  if (typeof result.status !== 'number') return true;
   // Otherwise assume this executed correctly. The command may still have exited
-  // with non-zero status, but that's not due to anything execa did.
+  // with non-zero status, but that's not due to anything spawnSync did.
   return false;
 }
 
@@ -61,7 +61,7 @@ function isExecaInternalError(result) {
 //@ this with `set('-f')`.
 //@
 //@ This **does not** support asynchronous mode. If you need asynchronous
-//@ command execution, check out [execa](https://www.npmjs.com/package/execa) or
+//@ command execution, check out [nano-spawn](https://www.npmjs.com/package/nano-spawn) or
 //@ the node builtin `child_process.execFile()` instead.
 function _cmd(options, command, commandArgs, userOptions) {
   if (!command) {
@@ -89,12 +89,11 @@ function _cmd(options, command, commandArgs, userOptions) {
 
   var pipe = common.readFromPipe();
 
-  // Some of our defaults differ from execa's defaults. These can be overridden
+  // Some of our defaults differ from spawnSync's defaults. These can be overridden
   // by the user.
   var defaultOptions = {
     maxBuffer: DEFAULT_MAXBUFFER_SIZE,
-    stripFinalNewline: false, // Preserve trailing newlines for consistency with unix.
-    reject: false, // Use ShellJS's error handling system.
+    encoding: 'utf8',
   };
 
   // For other options, we forbid the user from overriding them (either for
@@ -104,10 +103,14 @@ function _cmd(options, command, commandArgs, userOptions) {
     shell: false,
   };
 
-  var execaOptions =
+  var spawnOptions =
     Object.assign(defaultOptions, userOptions, requiredOptions);
+  var pathKey = process.platform === 'win32' ? 'Path' : 'PATH';
+  var binPath = path.resolve(__dirname, '..', 'node_modules', '.bin');
+  spawnOptions.env = Object.assign({}, process.env, spawnOptions.env);
+  spawnOptions.env[pathKey] = binPath + path.delimiter + (spawnOptions.env[pathKey] || '');
 
-  var result = execa.sync(command, commandArgs, execaOptions);
+  var result = childProcess.spawnSync(command, commandArgs, spawnOptions);
   var stdout;
   var stderr;
   var code;
@@ -117,18 +120,18 @@ function _cmd(options, command, commandArgs, userOptions) {
     stdout = '';
     stderr = "'" + command + "': command not found";
     code = COMMAND_NOT_FOUND_ERROR_CODE;
-  } else if (isExecaInternalError(result)) {
-    // Catch-all: execa tried to run `command` but it encountered some error
+  } else if (isSpawnInternalError(result)) {
+    // Catch-all: spawnSync tried to run `command` but it encountered some error
     // (ex. maxBuffer, timeout).
     stdout = result.stdout || '';
     stderr = result.stderr ||
              `'${command}' encountered an error during execution`;
-    code = result.exitCode !== undefined && result.exitCode > 0 ? result.exitCode : 1;
+    code = result.status !== undefined && result.status > 0 ? result.status : 1;
   } else {
-    // Normal exit: execa was able to execute `command` and get a return value.
+    // Normal exit: spawnSync was able to execute `command` and get a return value.
     stdout = result.stdout.toString();
     stderr = result.stderr.toString();
-    code = result.exitCode;
+    code = result.status;
   }
 
   // Pass `continue: true` so we can specify a value for stdout.

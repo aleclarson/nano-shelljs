@@ -13,7 +13,7 @@ module.exports = common.shell;
 //@
 //@ All commands run synchronously, unless otherwise stated.
 //@ All commands accept standard bash globbing characters (`*`, `?`, etc.),
-//@ compatible with [`fast-glob`](https://www.npmjs.com/package/fast-glob).
+//@ compatible with [`tinyglobby`](https://www.npmjs.com/package/tinyglobby).
 //@
 //@ For less-commonly used commands and features, please check out our [wiki
 //@ page](https://github.com/shelljs/shelljs/wiki).
@@ -174,7 +174,7 @@ module.exports.config = common.config;
 //@ ShellJS release.
 //@
 //@ **Breaking change**: ShellJS v0.8.x uses `node-glob`. Starting with ShellJS
-//@ v0.9.x, `config.globOptions` is compatible with `fast-glob`.
+//@ v0.9.x, `config.globOptions` is compatible with `tinyglobby`.
 //@
 //@ Example:
 //@
@@ -184,7 +184,7 @@ module.exports.config = common.config;
 //@
 //@ `config.globOptions` changes how ShellJS expands glob (wildcard)
 //@ expressions. See
-//@ [fast-glob](https://github.com/mrmlnc/fast-glob?tab=readme-ov-file#options-3)
+//@ [tinyglobby](https://superchupu.dev/tinyglobby)
 //@ for available options. Be aware that modifying `config.globOptions` **may
 //@ break ShellJS functionality.**
 

@@ -135,7 +135,7 @@ shell.echo('hello world');
 
 All commands run synchronously, unless otherwise stated.
 All commands accept standard bash globbing characters (`*`, `?`, etc.),
-compatible with [`fast-glob`](https://www.npmjs.com/package/fast-glob).
+compatible with [`tinyglobby`](https://www.npmjs.com/package/tinyglobby).
 
 For less-commonly used commands and features, please check out our [wiki
 page](https://github.com/shelljs/shelljs/wiki).
@@ -233,8 +233,28 @@ By default, this performs globbing on all platforms, but you can disable
 this with `set('-f')`.
 
 This **does not** support asynchronous mode. If you need asynchronous
-command execution, check out [execa](https://www.npmjs.com/package/execa) or
+command execution, check out [nano-spawn](https://www.npmjs.com/package/nano-spawn) or
 the node builtin `child_process.execFile()` instead.
+
+
+### ShellString(str)
+
+Examples:
+
+```javascript
+var foo = new ShellString('hello world');
+```
+
+This is a dedicated type returned by most ShellJS methods, which wraps a
+string (or array) value. This has all the string (or array) methods, but
+also exposes extra methods: [`.to()`](#shellstringprototypetofile),
+[`.toEnd()`](#shellstringprototypetoendfile), and all the pipe-able methods
+(ex. `.cat()`, `.grep()`, etc.). This can be easily converted into a string
+by calling `.toString()`.
+
+This type also exposes the corresponding command's stdout, stderr, and
+return status code via the `.stdout` (string), `.stderr` (string), and
+`.code` (number) properties respectively.
 
 
 ### cp([options,] source [, source ...], dest)
@@ -345,6 +365,21 @@ echo('-n', 'no newline at end');
 ```
 
 Prints `string` to stdout, and returns a [ShellString](#shellstringstr).
+
+
+### error()
+
+Tests if error occurred in the last command. Returns a truthy value if an
+error returned, or a falsy value otherwise.
+
+**Note**: do not rely on the
+return value to be an error message. If you need the last error message, use
+the `.stderr` attribute from the last command's return value instead.
+
+
+### errorCode()
+
+Returns the error code from the last command.
 
 
 ### exec(command [, options] [, callback])
@@ -902,7 +937,7 @@ Support for this configuration option may be changed or removed in a future
 ShellJS release.
 
 **Breaking change**: ShellJS v0.8.x uses `node-glob`. Starting with ShellJS
-v0.9.x, `config.globOptions` is compatible with `fast-glob`.
+v0.9.x, `config.globOptions` is compatible with `tinyglobby`.
 
 Example:
 
@@ -912,7 +947,7 @@ config.globOptions = {nodir: true};
 
 `config.globOptions` changes how ShellJS expands glob (wildcard)
 expressions. See
-[fast-glob](https://github.com/mrmlnc/fast-glob?tab=readme-ov-file#options-3)
+[tinyglobby](https://superchupu.dev/tinyglobby)
 for available options. Be aware that modifying `config.globOptions` **may
 break ShellJS functionality.**
 

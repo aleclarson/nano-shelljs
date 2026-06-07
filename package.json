@@ -43,7 +43,7 @@
   ],
   "scripts": {
     "check-node-support": "node scripts/check-node-support",
-    "posttest": "npm run lint",
+    "posttest": "pnpm run lint",
     "test": "ava",
     "test-with-coverage": "nyc --reporter=text --reporter=lcov ava",
     "gendocs": "node scripts/generate-docs",
@@ -54,8 +54,8 @@
     "release:patch": "shelljs-release patch"
   },
   "dependencies": {
-    "execa": "^5.1.1",
-    "fast-glob": "^3.3.2"
+    "nano-spawn": "^2.1.0",
+    "tinyglobby": "^0.2.17"
   },
   "ava": {
     "serial": true,
@@ -84,5 +84,6 @@
   },
   "engines": {
     "node": ">=18"
-  }
+  },
+  "packageManager": "pnpm@11.5.1"
 }
